@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Διαχείριση Μαθημάτων</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #0d8295;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .menu {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .menu a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #0d8295;
+            font-weight: bold;
+        }
+        .form-container {
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group textarea, .form-group button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group button {
+            background-color: #0d8295;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0b697d;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .section h2 {
+            background-color: #0d8295;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 0 -20px;
+            margin-bottom: 20px;
+        }
+        .section .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .holidays-container, .material-list, .student-list {
+            margin-bottom: 15px;
+        }
+        .holiday-slot, .material-slot, .student-slot {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .holiday-slot input, .material-slot input, .student-slot input {
+            width: 48%;
+        }
+        .add-holiday-btn, .add-material-btn {
+            background-color: #f59f26;
+            color: #fff;
+        }
+        .add-holiday-btn:hover, .add-material-btn:hover {
+            background-color: #d9851b;
+        }
+        .material-slot button, .student-slot button {
+            width: auto;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .material-slot button.edit-btn {
+            background-color: #0d8295;
+            margin-right: 5px;
+        }
+        .material-slot button.edit-btn:hover {
+            background-color: #0b697d;
+        }
+        .material-slot button:hover, .student-slot button:hover {
+            background-color: #d32f2f;
+        }
+        .scrolling-list {
+            height: 100px;
+            overflow-y: scroll;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .box {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .box-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Σύστημα Διαχείρισης Μαθήματος</h1>
+    </div>
+
+    <div class="menu">
+        <a href="#course-actions">Αρχειοθέτηση Μαθήματος</a>
+        <a href="#edit-course-materials">Επεξεργασία Υλικών Μαθήματος</a>
+        <a href="#enroll-students">Εγγραφή Φοιτητών</a>
+    </div>
+
+    <div id="course-actions" class="section">
+        <h2>Αρχειοθέτηση Μαθήματος</h2>
+        <div class="form-container">
+            <form id="course-actions-form">
+                <div class="form-group">
+                    <label for="course-code">Κωδικός Μαθήματος</label>
+                    <input type="text" id="course-code" name="course-code" required>
+                </div>
+                <div class="form-group">
+                    <button type="button" onclick="searchCourse()">Αναζήτηση Μαθήματος</button>
+                </div>
+                <div id="course-actions-fields" style="display: none;">
+                    <div class="form-group">
+                        <input type="checkbox" id="archive-course" name="archive-course">
+                        <label for="archive-course">Αρχειοθέτηση Μαθήματος</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="checkbox" id="duplicate-course" name="duplicate-course">
+                        <label for="duplicate-course">Αρχειοθέτηση και Δημιουργία Νέου Διπλότυπου Μαθήματος</label>
+                    </div>
+                    <div id="duplicate-course-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="course-title">Τίτλος Μαθήματος</label>
+                            <input type="text" id="course-title" name="course-title" value="Αριθμητική Ανάλυση" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="faculty">Σχολή</label>
+                            <select id="faculty" name="faculty" required>
+                                <option value="humanities">Σχολή Ανθρωπιστικών Σπουδών</option>
+                                <option value="science" selected>Σχολή Θετικών Επιστημών</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Τμήμα</label>
+                            <select id="department" name="department" required>
+                                <option value="informatics">Τμήμα Πληροφορικής</option>
+                                <option value="math" selected>Τμήμα Μαθηματικού</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="academic-year">Ακαδημαϊκό Έτος</label>
+                            <select id="academic-year" name="academic-year" required>
+                                <option value="2022-2023">2022-2023</option>
+                                <option value="2023-2024">2023-2024</option>
+                                <option value="2024-2025">2024-2025</option>
+                                <option value="2025-2026">2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="semester">Εξάμηνο</label>
+                            <select id="semester" name="semester" required>
+                                <option value="fall">Χειμερινό</option>
+                                <option value="spring">Εαρινό</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="start-date">Ημερομηνία Έναρξης</label>
+                            <input type="date" id="start-date" name="start-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">Ημερομηνία Λήξης</label>
+                            <input type="date" id="end-date" name="end-date" required>
+                        </div>
+                        <div class="form-group holidays-container">
+                            <label>Περίοδοι Διακοπών</label>
+                            <div class="holiday-slot">
+                                <input type="date" name="holiday-start-date[]" placeholder="Ημερομηνία Έναρξης" required>
+                                <input type="date" name="holiday-end-date[]" placeholder="Ημερομηνία Λήξης" required>
+                            </div>
+                        </div>
+                        <button type="button" class="add-holiday-btn" onclick="addHolidaySlot()">Προσθήκη Περιόδου Διακοπών</button>
+                        <div class="form-group">
+                            <label for="instructors">Εκπαιδευτές</label>
+                            <select id="instructors" name="instructors[]" multiple class="scrolling-list" required>
+                                <option value="instructor1">Γιάννης Παπαδόπουλος</option>
+                                <option value="instructor2">Μαρία Κωνσταντίνου</option>
+                                <option value="instructor3">Νίκος Γεωργίου</option>
+                                <option value="instructor4">Ελένη Παναγιώτου</option>
+                                <option value="instructor5">Δημήτρης Σταματίου</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="course-editors">Επεξεργαστές Υλικών</label>
+                            <select id="course-editors" name="course-editors[]" multiple class="scrolling-list" required>
+                                <option value="editor1">Γιάννης Παπαδόπουλος</option>
+                                <option value="editor2">Μαρία Κωνσταντίνου</option>
+                                <option value="editor3">Νίκος Γεωργίου</option>
+                                <option value="editor4">Ελένη Παναγιώτου</option>
+                                <option value="editor5">Δημήτρης Σταματίου</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Υποβολή</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-course-materials" class="section">
+        <h2>Επεξεργασία Υλικών Μαθήματος</h2>
+        <div class="form-container">
+            <form id="edit-course-materials-form">
+                <div class="form-group">
+                    <label for="edit-course-code">Κωδικός Μαθήματος</label>
+                    <input type="text" id="edit-course-code" name="edit-course-code" required>
+                </div>
+                <div class="form-group">
+                    <button type="button" onclick="searchEditCourse()">Αναζήτηση Μαθήματος</button>
+                </div>
+                <div id="edit-course-materials-fields" style="display: none;">
+                    <div class="box-title">Διαθέσιμες Ενότητες</div>
+                    <div class="form-group material-list box">
+                        <div class="material-slot">
+                            <span>Παρουσίαση Διάλεξης</span>
+                            <button type="button" class="edit-btn" onclick="editMaterialSlot(this)">Επεξεργασία</button>
+                            <button type="button" onclick="removeMaterialSlot(this)">Διαγραφή</button>
+                        </div>
+                        <div class="material-slot">
+                            <span>Video Εργαστηρίου</span>
+                            <button type="button" class="edit-btn" onclick="editMaterialSlot(this)">Επεξεργασία</button>
+                            <button type="button" onclick="removeMaterialSlot(this)">Διαγραφή</button>
+                        </div>
+                        <div class="material-slot">
+                            <span>Πρακτική Άσκηση</span>
+                            <button type="button" class="edit-btn" onclick="editMaterialSlot(this)">Επεξεργασία</button>
+                            <button type="button" onclick="removeMaterialSlot(this)">Διαγραφή</button>
+                        </div>
+                        <div class="material-slot">
+                            <span>Τελική Εξέταση</span>
+                            <button type="button" class="edit-btn" onclick="editMaterialSlot(this)">Επεξεργασία</button>
+                            <button type="button" onclick="removeMaterialSlot(this)">Διαγραφή</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-material">Νέα Ενότητα</label>
+                        <input type="text" id="new-material" name="new-material">
+                        <input type="file" id="new-material-file" name="new-material-file">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="add-material-btn" onclick="addMaterialSlot()">Προσθήκη Ενότητας</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Αποθήκευση Υλικών</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="enroll-students" class="section">
+        <h2>Εγγραφή Φοιτητών</h2>
+        <div class="form-container">
+            <form id="enroll-students-form">
+                <div class="form-group">
+                    <label for="enroll-course-code">Κωδικός Μαθήματος</label>
+                    <input type="text" id="enroll-course-code" name="enroll-course-code" required>
+                </div>
+                <div class="form-group">
+                    <button type="button" onclick="searchEnrollCourse()">Αναζήτηση Μαθήματος</button>
+                </div>
+                <div id="enroll-students-fields" style="display: none;">
+                    <div class="form-group student-list">
+                        <label>Λίστα Φοιτητών</label>
+                        <select id="student-list" name="students[]" multiple class="scrolling-list" required>
+                            <option value="student1">Ανδρέας Παπαδόπουλος</option>
+                            <option value="student2">Ελένη Κωνσταντίνου</option>
+                            <option value="student3">Μάριος Γεωργίου</option>
+                            <option value="student4">Δήμητρα Παναγιώτου</option>
+                            <option value="student5">Πέτρος Σταματίου</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit">Εγγραφή Φοιτητών</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFields(formId, enable) {
+        const form = document.getElementById(formId);
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+        const fields = form.querySelectorAll('.form-group.disabled, .disabled');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        checkboxes.forEach(cb => cb.disabled = !enable);
+        fields.forEach(f => f.classList.toggle('disabled', !enable));
+        submitButton.disabled = !enable;
+    }
+
+    function searchCourse() {
+        const code = document.getElementById('course-code').value.trim();
+        if (code) {
+            document.getElementById('course-actions-fields').style.display = 'block';
+            toggleFields('course-actions-form', true);
+        }
+    }
+
+    function searchEditCourse() {
+        const code = document.getElementById('edit-course-code').value.trim();
+        if (code) {
+            document.getElementById('edit-course-materials-fields').style.display = 'block';
+            toggleFields('edit-course-materials-form', true);
+        }
+    }
+
+    function searchEnrollCourse() {
+        const code = document.getElementById('enroll-course-code').value.trim();
+        if (code) {
+            document.getElementById('enroll-students-fields').style.display = 'block';
+            toggleFields('enroll-students-form', true);
+        }
+    }
+
+    document.getElementById('duplicate-course').addEventListener('change', function() {
+        const duplicateCourseFields = document.getElementById('duplicate-course-fields');
+        if (this.checked) {
+            duplicateCourseFields.style.display = 'block';
+        } else {
+            duplicateCourseFields.style.display = 'none';
+        }
+    });
+
+    function addHolidaySlot() {
+        const holidaysContainer = document.querySelector('.holidays-container');
+        const newHolidaySlot = document.createElement('div');
+        newHolidaySlot.className = 'holiday-slot';
+        newHolidaySlot.innerHTML = `
+            <input type="date" name="holiday-start-date[]" placeholder="Ημερομηνία Έναρξης" required>
+            <input type="date" name="holiday-end-date[]" placeholder="Ημερομηνία Λήξης" required>
+        `;
+        holidaysContainer.appendChild(newHolidaySlot);
+    }
+
+    function addMaterialSlot() {
+        const materialList = document.querySelector('.material-list');
+        const newMaterial = document.getElementById('new-material').value;
+        const newMaterialSlot = document.createElement('div');
+        newMaterialSlot.className = 'material-slot';
+        newMaterialSlot.innerHTML = `
+            <span>${newMaterial}</span>
+            <button type="button" class="edit-btn" onclick="editMaterialSlot(this)">Επεξεργασία</button>
+            <button type="button" onclick="removeMaterialSlot(this)">Διαγραφή</button>
+        `;
+        materialList.appendChild(newMaterialSlot);
+    }
+
+    function removeMaterialSlot(button) {
+        const materialSlot = button.parentElement;
+        materialSlot.remove();
+    }
+
+    function editMaterialSlot(button) {
+        // Λογική για επεξεργασία της ενότητας
+        alert("Επεξεργασία Ενότητας");
+    }
+</script>
+
+</body>
+</html>
+
